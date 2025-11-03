@@ -5,10 +5,10 @@
  * Distributed under terms of the MIT license.
  */
 
-// Yliess HATI code
+// Yliess HATI code (edited)
 let net;
 
-const modelUrl = "/models";
+const modelUrl = "models";
 
 const models = ["mnist_mlp", "mnist_convnet"];
 const modelSelect = document.getElementById("model");
@@ -21,7 +21,6 @@ const error = (err) => {
 };
 
 const timer = async (func, label = "") => {
-    timerText.innerHTML = "";
     const start = performance.now();
     const out = await func();
     const delta = (performance.now() - start).toFixed(1);
@@ -40,16 +39,29 @@ const getDevice = async () => {
 };
 
 const loadNet = async (modelName) => {
-    const jsPath = `.${modelUrl}/${modelName}/${modelName}.js`;
+    const jsPath = `${modelUrl}/${modelName}/${modelName}.js`;
     const netPath = `${modelUrl}/${modelName}/${modelName}.webgpu.safetensors`;
+
     try {
-        statusText.innerHTML = "loading the model...";
+        statusText.innerHTML = "fetching model...";
         const device = await getDevice();
-        const tinygrad = (await import(jsPath)).default;
-        net = await timer(
-            () => tinygrad.load(device, netPath),
-            "(compilation)",
-        );
+
+        // Fetch the JS module as text
+        const response = await fetch(jsPath);
+        if (!response.ok) throw new Error(`Failed to fetch ${jsPath}`);
+        const code = await response.text();
+
+        // Create a blob and import it as a module
+        const blob = new Blob([code], { type: "text/javascript" });
+        const blobUrl = URL.createObjectURL(blob);
+        const module = await import(/* @vite-ignore */blobUrl);
+        URL.revokeObjectURL(blobUrl);
+
+        const tinygrad = module.default;
+
+        // Load the weights
+        net = await timer(() => tinygrad.load(device, netPath), "(fetch + compilation)");
+
         statusText.innerHTML = "ready to classify";
     } catch (e) {
         error(e);
