@@ -9,10 +9,35 @@
 
 <body>
     <div id="app">
-        <h1>MNIST</h1>
-        <div>
+        <header>
+            <p>Draw a number and let the network tell you what it sees!</p>
+        </header>
 
-        </div>
+        <main>
+            <div id="start-div">
+                <select id="model"></select>
+                <button id="run">Run Model</button>
+            </div>
+            <div id="draw-section">
+                <div id="toolbox"></div>
+                <div id="canvas-container">
+                    <canvas id="canvas"></canvas>
+                    <canvas id="overlay"></canvas>
+                </div>
+            </div>
+            <div>
+                <canvas id="predictions"></canvas>
+            </div>
+            <div id="stats-section">
+                <p id="status"></p>
+                <p id="timer"> </p>
+                <a href="#" id="check-input">check input</a>
+            </div>
+        </main>
+
+        <footer>
+            Stanley Arnaud © 2025
+        </footer>
     </div>
     <script type="module" src="/src/main.js"></script>
 </body>
