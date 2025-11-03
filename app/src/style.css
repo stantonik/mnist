@@ -74,6 +74,7 @@ footer {
 
 button,
 select {
+    border-radius: 0;
     background-color: var(--color-primary);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
@@ -114,6 +115,7 @@ button:hover {
 #predictions {
     aspect-ratio: 5/2;
     width: 100%;
+    height: auto;
 }
 
 #start-div {
@@ -121,6 +123,10 @@ button:hover {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+}
+
+#start-div option {
+    text-align: center;
 }
 
 #toolbox {
@@ -154,11 +160,35 @@ button:hover {
     border-top: 2px solid var(--border-color);
     font-size: 0.7rem;
     display: flex;
-    flex: 1;
     flex-direction: row;
     justify-content: space-between;
 }
 
 #stats-section * {
     color: var(--text-secondary);
+    max-width: 30%;
+    overflow-wrap: break-word;
+}
+
+@media (max-width: 400px) {
+    #app {
+        max-width: 100%;
+        padding: 0.5rem;
+    }
+
+    header {
+        text-align: center;
+    }
+
+    #start-div {
+        flex-direction: column;
+    }
+
+    #stats-section {
+        flex-direction: column;
+    }
+
+    #stats-section * {
+        max-width: 100%;
+    }
 }

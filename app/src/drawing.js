@@ -39,50 +39,104 @@ export function setupCanvas() {
     overlay.height = canvas.height;
     overlay.width = canvas.width;
 
-    // Setup event listeners
-    canvas.addEventListener("mousedown", (e) => {
-        if (e.button === 0) {
-            drawing = true;
+    // Drawing callbacks
+    // Helper to get canvas coordinates from mouse or touch
+    const getPosFromEvent = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        let clientX, clientY;
 
-            const rect = canvas.getBoundingClientRect();
-            lastX = (e.clientX - rect.left) * canvas.width / rect.width;
-            lastY = (e.clientY - rect.top) * canvas.height / rect.height;
+        if (e.touches) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
         }
-    });
-    canvas.addEventListener("mouseup", () => {
-        drawing = false;
-    });
-    canvas.addEventListener("mouseleave", () => {
+
+        const x = (clientX - rect.left) * canvas.width / rect.width;
+        const y = (clientY - rect.top) * canvas.height / rect.height;
+        return { x, y };
+    };
+
+    // Scroll to change radius
+    const editRadius = (deltaOrScale) => {
+        if (typeof deltaOrScale === "number") {
+            // desktop wheel: delta positive or negative
+            radiusCurrent = deltaOrScale < 0
+                ? Math.min(radiusCurrent + radiusStep, radiusMax)
+                : Math.max(radiusCurrent - radiusStep, radiusMin);
+        } else if (typeof deltaOrScale === "object") {
+            // pinch: { scale: number }
+            radiusCurrent = Math.min(radiusMax, Math.max(radiusMin, radiusCurrent * deltaOrScale.scale));
+        }
+
+        updateOverlay(x, y);
+        console.log("Brush size:", radiusCurrent);
+    };
+
+    const handleWheel = (e) => {
+        e.preventDefault();
+        editRadius(e.deltaY);
+    };
+
+    let initialPinchDistance = null;
+
+    const getDistance = (t1, t2) => Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+
+    const handleTouchStart = (e) => {
+        if (e.touches.length === 2) {
+            initialPinchDistance = getDistance(e.touches[0], e.touches[1]);
+        }
+    };
+
+    const handleTouchMove = (e) => {
+        if (e.touches.length === 2 && initialPinchDistance) {
+            const currentDistance = getDistance(e.touches[0], e.touches[1]);
+            const scale = currentDistance / initialPinchDistance;
+            editRadius({ scale });
+        }
+    };
+
+    const handleTouchEnd = (e) => {
+        if (e.touches.length < 2) {
+            initialPinchDistance = null;
+        }
+    };
+
+    // Start drawing
+    const startDrawing = (e) => {
+        e.preventDefault(); // prevent scrolling on touch
+        drawing = true;
+        const pos = getPosFromEvent(e);
+        lastX = pos.x;
+        lastY = pos.y;
+    };
+
+    // Stop drawing
+    const stopDrawing = (e) => {
+        e.preventDefault();
         drawing = false;
         overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
-    });
-    canvas.addEventListener("wheel", (e) => {
+    };
+
+    // Draw on canvas
+    const draw = (e) => {
         e.preventDefault();
 
-        // Normalize direction: deltaY > 0 means scrolling down
-        if (e.deltaY < 0) {
-            radiusCurrent = Math.min(radiusCurrent + radiusStep, radiusMax);
-        } else {
-            radiusCurrent = Math.max(radiusCurrent - radiusStep, radiusMin);
-        }
+        if (e.touches && e.touches.length > 1) return;
+
+        const pos = getPosFromEvent(e);
+        x = pos.x;
+        y = pos.y;
 
         updateOverlay(x, y);
 
-        console.log("Brush size:", radiusCurrent);
-    });
-    canvas.addEventListener("mousemove", (e) => {
-        const rect = canvas.getBoundingClientRect();
-        x = (e.clientX - rect.left) * canvas.width / rect.width;
-        y = (e.clientY - rect.top) * canvas.height / rect.height;
-
-        updateOverlay(x, y);
         if (!drawing) return;
 
-        // Normal drawing
         ctx.globalCompositeOperation = erasing ? 'destination-out' : 'source-over';
         ctx.strokeStyle = rootStyles.getPropertyValue('--color-primary-hover').trim();
         ctx.lineWidth = radiusCurrent * 2;
-        ctx.lineCap = "round";
+        ctx.lineCap = 'round';
         ctx.beginPath();
         ctx.moveTo(lastX, lastY);
         ctx.lineTo(x, y);
@@ -91,7 +145,29 @@ export function setupCanvas() {
 
         lastX = x;
         lastY = y;
-    });
+    };
+
+    // Setup event listeners
+    // Mouse events
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('wheel', handleWheel);
+
+    // Touch events
+    canvas.addEventListener('touchstart', startDrawing, { passive: false });
+    canvas.addEventListener('touchend', stopDrawing);
+    canvas.addEventListener('touchcancel', stopDrawing);
+    canvas.addEventListener('touchmove', draw, { passive: false });
+
+    // Touch events (pinch)
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd);
+    canvas.addEventListener('touchcancel', handleTouchEnd);
+
+
 
     // Setup tools
     const toolBox = document.getElementById("toolbox");
