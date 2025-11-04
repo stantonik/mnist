@@ -1,7 +1,3 @@
-Here’s a polished and more coherent version of your report. I’ve improved clarity, structure, grammar, and flow, while keeping all your technical details and results intact:
-
----
-
 # MNIST Hyperparameter Exploration
 
 ## Research Overview
@@ -77,11 +73,11 @@ I performed **single-parameter sweeps** to narrow down the critical hyperparamet
 Best accuracy (95.25%) for depth=2 and width=1024
 ```
 
-![Accuracy vs Width & Depth](./images/plots/acc_width_depth.png)
+![Accuracy vs Width & Depth](./media/mlp_plots/acc_width_depth.png)
 
 Training time grows significantly with wider layers:
 
-![Width vs Time](./images/plots/width_acc_time.png)
+![Width vs Time](./media/mlp_plots/width_acc_time.png)
 
 Since the accuracy gain from 512 → 1024 is marginal, **width=512** is chosen for efficiency
 
@@ -92,7 +88,7 @@ widths = [512]
 
 #### Batch Size
 
-![Batch Size vs Accuracy](./images/plots/acc_bs.png)
+![Batch Size vs Accuracy](./media/mlp_plots/acc_bs.png)
 
 Batch size around **128** gives the best trade-off:
 
@@ -102,13 +98,13 @@ batch_sizes = [128, 256]
 
 #### Activation Function
 
-![Activation vs Accuracy](./images/plots/acc_lr_actifn2.png)
+![Activation vs Accuracy](./media/mlp_plots/acc_lr_actifn2.png)
 
 The choice between SiLU and ReLU does not significantly affect results. **SiLU** is selected.
 
 #### Optimizer
 
-![Optimizer vs Accuracy](./images/plots/acc_lr_opt.png)
+![Optimizer vs Accuracy](./media/mlp_plots/acc_lr_opt.png)
 
 Adam clearly outperforms SGD for the MLP, so **Adam** is preferred.
 
@@ -144,7 +140,7 @@ This results in **16 configurations**. After testing, configurations with `(SDG,
 
 Classement:
 
-![Top Configurations](./images/plots/final_cfg_top.png)
+![Top Configurations](./media/mlp_plots/final_cfg_top.png)
 
 ---
 
@@ -155,13 +151,47 @@ This helps detect **underfitting or overfitting** and guides final fine-tuning.
 
 ---
 
-## CNN Training (Next)
+## CNN Training
 
 The same methodology applies, but with slight adjustments:
 
 * Fewer epochs (1–5) are typically sufficient.
 * Convolutional layers increase sensitivity to **batch size** and **learning rate** interactions.
-* Adam (lr = 1e-3) and SGD (momentum = 0.9, lr = 1e-2) are good starting points.
+
+#### Batch Size
+
+![Batch Size vs Accuracy](./media/conv_plots/acc_bs.png)
+
+Batch size around **64** gives the best trade-off:
+
+#### Activation Function
+
+![Activation vs Accuracy](./media/conv_plots/acc_lr_actifn.png)
+
+SiLU seems to be prefered.
+
+#### Optimizer
+
+![Optimizer vs Accuracy](./media/conv_plots/acc_lr_opt.png)
+
+Adam clearly outperforms SGD for the MLP, so **Adam** is preferred.
+
+#### Top 8 Configurations
+
+| ID | Optimizer | Learning Rate | 
+| -- | --------- | ------------- |
+| 1  | Adam      | 3e-3          |
+| 2  | Adam      | 1e-3          |
+| 3  | Adam      | 1e-4          |
+| 4  | Adam      | 1e-4          |
+| 5  | Adam      | 3e-3          |
+| 6  | Adam      | 1e-3          |
+| 7  | SGD       | 3e-3          |
+| 8  | SGD       | 1e-3          |
+
+Classement:
+
+![Top Configurations](./media/conv_plots/final_cfg_top.png)
 
 ---
 
@@ -176,10 +206,10 @@ The same methodology applies, but with slight adjustments:
 
 **Final Run (Best Configuration)**
 
-| Model         | Learning Rate | Accuracy |
-| ------------- | ------------- | -------- |
-| mnist_mlp     | 1.00e-03      | 98.19%   |
-| mnist_convnet | 1.00e-03      | ...%     |
+| Model   | Architecture  | Accuracy   | Activation | Optimizer | Batch Size | Epochs | Max LR |
+| ------- | ------------- | ---------- | ---------- | --------- | ---------- | ------ | ------ |
+| **MLP** | 2 × 512       | **98.6 %** | SiLU       | Adam      | 128        | 10     | 1e-3   |
+| **CNN** | 4 × (32 → 64) | **99.3 %** | SiLU       | Adam      | 64         | 5      | 3e-3   |
 
 ---
 
