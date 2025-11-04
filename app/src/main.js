@@ -120,7 +120,7 @@ async function loopInference() {
     console.log(pIdx);
     updatePredictions(pIdx);
 
-    setTimeout(loopInference, 500); // call again after 0.5s
+    setTimeout(loopInference, 200); // call again after 0.2s
 }
 
 // Event listeners

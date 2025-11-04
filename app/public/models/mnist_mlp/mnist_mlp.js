@@ -222,7 +222,7 @@ var<workgroup> temp0: array<f32,128>;
   }
 }`;
 
-const r_10_16_32n1 = `fn nan() -> f32 { let bits = 0xffffffffu; return bitcast<f32>(bits); }
+const r_10_16_32 = `fn nan() -> f32 { let bits = 0xffffffffu; return bitcast<f32>(bits); }
 @group(0) @binding(0)
 var<uniform> INFINITY : f32;
 var<workgroup> temp0: array<f32,16>;
@@ -270,17 +270,17 @@ const setupNet = async (device, safetensor) => {
     const buf_1 = createWeightBuf(device, 1605632, getTensorBuffer(safetensor, metadata['layers.1.weight']));
     const buf_2 = createWeightBuf(device, 2048, getTensorBuffer(safetensor, metadata['layers.1.bias']));
     const buf_3 = createEmptyBuf(device, 2048);;
-    const buf_4 = createWeightBuf(device, 1048576, getTensorBuffer(safetensor, metadata['layers.3.weight']));
-    const buf_5 = createWeightBuf(device, 2048, getTensorBuffer(safetensor, metadata['layers.3.bias']));
+    const buf_4 = createWeightBuf(device, 1048576, getTensorBuffer(safetensor, metadata['layers.4.weight']));
+    const buf_5 = createWeightBuf(device, 2048, getTensorBuffer(safetensor, metadata['layers.4.bias']));
     const output0 = createEmptyBuf(device, 40);;
-    const buf_6 = createWeightBuf(device, 20480, getTensorBuffer(safetensor, metadata['layers.5.weight']));
-    const buf_7 = createWeightBuf(device, 40, getTensorBuffer(safetensor, metadata['layers.5.bias']));
+    const buf_6 = createWeightBuf(device, 20480, getTensorBuffer(safetensor, metadata['layers.7.weight']));
+    const buf_7 = createWeightBuf(device, 40, getTensorBuffer(safetensor, metadata['layers.7.bias']));
 
     const gpuWriteBuffer0 = device.createBuffer({size:input0.size, usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.MAP_WRITE });
 
     const gpuReadBuffer0 = device.createBuffer({size:output0.size, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
 
-    const kernels = [r_32_4_4_8_98, r_32_4_4_8_64, r_10_16_32n1];
+    const kernels = [r_32_4_4_8_98, r_32_4_4_8_64, r_10_16_32];
     const pipelines = await Promise.all(kernels.map(async (name, i) => {
       return await device.createComputePipelineAsync({
           layout: device.createPipelineLayout({
