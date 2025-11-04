@@ -131,7 +131,7 @@ def train_model(type: models.Type, cfg: HPConfig, cvt_webgpu=False) -> list[Trai
     return logs
 
 if __name__ == "__main__":
-    TYPE = models.Type(getenv("TYPE", models.Type.MLP.value))
+    TYPE = models.Type.MLP if getenv("TYPE", "mlp").lower() == "mlp" else models.Type.CONV
     TESTS = getenv("TESTS", 0)
 
     # Hyperparameters from environment
