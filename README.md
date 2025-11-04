@@ -13,6 +13,7 @@ It allows you to **draw digits**, **switch between models**, and **see live pred
 > The goal of this project is to explore an **end-to-end deep learning workflow** — from **hyperparameter optimization** and **TinyGrad training** to **efficient WebGPU inference**, all with minimal dependencies and modern web technologies.
 
 [![demo](./docs/media/demo.gif)](https://stantonik.github.io/mnist)
+
 **[Access the live demo](https://stantonik.github.io/mnist)**
 
 ---
@@ -32,7 +33,7 @@ It allows you to **draw digits**, **switch between models**, and **see live pred
 
 | Model   | Architecture  | Accuracy   | Activation | Optimizer | Batch Size | Epochs | Max LR |
 | ------- | ------------- | ---------- | ---------- | --------- | ---------- | ------ | ------ |
-| **MLP** | 2 × 512       | **98.6 %** | SiLU       | Adam      | 128        | 10     | 1e-3   |
+| **MLP** | 2 × 512       | **98.3 %** | SiLU       | Adam      | 128        | 10     | 1e-3   |
 | **CNN** | 4 × (32 → 64) | **99.3 %** | SiLU       | Adam      | 64         | 5      | 3e-3   |
 
 Both models use a **plateau-based learning rate scheduler** for smoother convergence.
@@ -81,13 +82,13 @@ Use the provided Python scripts to train and export models:
 cd train
 
 # Train MLP
-TYPE=0 python train.py
+TYPE=mlp B=128 LR=0.001 OPT=adam ACT_FN=silu EPOCHS=10 python train.py
 
 # Train CNN
-TYPE=1 python train.py
+TYPE=conv B=64 LR=0.003 OPT=adam ACT_FN=silu EPOCHS=5 python train.py
 
-# Run hyperparameter experiments
-python run_experiments.py
+# Run hyperparameter experiments with plots (N between 1 to 5)
+TYPE=conv TESTS=N python train.py
 ```
 
 Trained models are saved as `.safetensors` files in `app/public/models/`.
