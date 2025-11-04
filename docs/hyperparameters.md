@@ -153,63 +153,82 @@ This helps detect **underfitting or overfitting** and guides final fine-tuning.
 
 ## CNN Training
 
-The same methodology applies, but with slight adjustments:
+The same hyperparameter exploration methodology used for the MLP was applied to the **Convolutional Neural Network (CNN)**, with some important adjustments due to architectural differences.
 
-* Fewer epochs (1–5) are typically sufficient.
-* Convolutional layers increase sensitivity to **batch size** and **learning rate** interactions.
+### Key Observations
 
-#### Batch Size
+* CNNs extract spatial features more efficiently, so **fewer epochs (1–5)** are generally sufficient for MNIST.
+* They are **more sensitive to batch size and learning rate**, since convolutional kernels update in correlated patterns.
+
+---
+
+### Batch Size Sweep
 
 ![Batch Size vs Accuracy](./media/conv_plots/acc_bs.png)
 
-Batch size around **64** gives the best trade-off:
+A batch size around **64** provides the best trade-off between training stability and generalization.
 
-#### Activation Function
+**→ Final choice:** `batch_size = 64`
+
+---
+
+### Activation Function Comparison
 
 ![Activation vs Accuracy](./media/conv_plots/acc_lr_actifn.png)
 
-SiLU seems to be prefered.
+The **SiLU (Sigmoid Linear Unit)** activation consistently performs better than ReLU, thanks to its smooth gradient behavior and ability to retain small negative activations.
+This leads to more stable training and slightly higher validation accuracy.
 
-#### Optimizer
+**→ Final choice:** `activation_fn = Tensor.silu`
+
+---
+
+### Optimizer Analysis
 
 ![Optimizer vs Accuracy](./media/conv_plots/acc_lr_opt.png)
 
-Adam clearly outperforms SGD for the MLP, so **Adam** is preferred.
+**Adam** again shows faster convergence and higher final accuracy compared to **SGD**, particularly at moderate learning rates.
+SGD can catch up with careful tuning but requires more epochs to stabilize.
 
-#### Top 8 Configurations
+---
 
-| ID | Optimizer | Learning Rate | 
-| -- | --------- | ------------- |
-| 1  | Adam      | 3e-3          |
-| 2  | Adam      | 1e-3          |
-| 3  | Adam      | 1e-4          |
-| 4  | Adam      | 1e-4          |
-| 5  | Adam      | 3e-3          |
-| 6  | Adam      | 1e-3          |
-| 7  | SGD       | 3e-3          |
-| 8  | SGD       | 1e-3          |
+### Top 8 Tested Configurations
 
-Classement:
+| ID | Optimizer | Learning Rate | Activation |
+| -- | --------- | ------------- | ---------- |
+| 1  | Adam      | 3e-3          | SiLU       |
+| 2  | Adam      | 1e-3          | SiLU       |
+| 3  | SGD       | 1e-2          | SiLU       |
+| 4  | SGD       | 3e-3          | SiLU       |
+| 5  | Adam      | 3e-3          | ReLU       |
+| 6  | Adam      | 1e-3          | ReLU       |
+| 7  | SGD       | 1e-2          | ReLU       |
+| 8  | SGD       | 3e-3          | ReLU       |
+
+---
+
+### Results Summary
+
+The ranking plot below shows the final comparison across all CNN configurations:
 
 ![Top Configurations](./media/conv_plots/final_cfg_top.png)
+
+* The **Adam + SiLU (lr = 3e-3)** configuration achieved the best performance.
+* **SGD** configurations required longer training and yielded lower peak accuracies.
+* ReLU variants performed slightly worse but remained competitive.
 
 ---
 
 ## Conclusion
 
-**Initial Run**
+The CNN model outperformed the MLP accuracy, confirming the benefit of convolutional feature extraction for image data like MNIST.
 
-| Model         | Learning Rate | Accuracy |
-| ------------- | ------------- | -------- |
-| mnist_mlp     | 2.00e-02      | 87.36%   |
-| mnist_convnet | 2.00e-02      | 97.96%   |
-
-**Final Run (Best Configuration)**
+### Performance Summary
 
 | Model   | Architecture  | Accuracy   | Activation | Optimizer | Batch Size | Epochs | Max LR |
 | ------- | ------------- | ---------- | ---------- | --------- | ---------- | ------ | ------ |
 | **MLP** | 2 × 512       | **98.6 %** | SiLU       | Adam      | 128        | 10     | 1e-3   |
 | **CNN** | 4 × (32 → 64) | **99.3 %** | SiLU       | Adam      | 64         | 5      | 3e-3   |
 
----
+> The final CNN achieved **99.3 % test accuracy**, approaching state-of-the-art results on MNIST using only TinyGrad and WebGPU — demonstrating that even minimalist frameworks can reach top-tier performance with the right hyperparameter tuning.
 
