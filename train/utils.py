@@ -5,9 +5,45 @@
 #
 # Distributed under terms of the MIT license.
 
+from dataclasses import dataclass
 from enum import Enum
-from tinygrad import Tensor
+from typing import Callable, Optional
+from tinygrad import Tensor, nn
 import math
+
+from tinygrad.nn.optim import Optimizer
+
+@dataclass
+class HPConfig():
+    batch_size: int = 128
+    lr: float = 1e-3
+    opt: Callable[[list[Tensor]], Optimizer] = nn.optim.Adam
+    width: int = 512
+    depth: int = 2
+    activation_fn: Callable[[Tensor],Tensor] = Tensor.silu
+    epochs: int = 1
+
+    lr_decay: float = 0.9
+    patience: int = 50
+    angle: int = 15
+    scale: float = 0.1
+    shift: float = 0.1
+
+@dataclass
+class TrainLog:
+    step: int
+    train_loss: float
+    test_loss: Optional[float]
+    test_acc: Optional[float]
+    best_acc: float
+    lr: float
+    time: float
+
+    batch_size: Optional[int] = None
+    width: Optional[int] = None
+    depth: Optional[int] = None
+    opt_name: Optional[str] = None
+
 
 class SamplingMod(Enum):
   BILINEAR = 0
