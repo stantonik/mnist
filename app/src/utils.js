@@ -5,6 +5,48 @@
  * Distributed under terms of the MIT license.
  */
 
+import './style.css';
+
+// Build palette object
+const buildPalette = () => {
+    // Helper to read CSS variables from :root
+    const getVar = (name) =>
+        getComputedStyle(document.documentElement)
+            .getPropertyValue(name)
+            .trim();
+
+    const palette = {
+        background: {
+            primary: getVar('--bg-primary'),
+            secondary: getVar('--bg-secondary'),
+            accent: getVar('--bg-accent'),
+        },
+        text: {
+            primary: getVar('--text-primary'),
+            secondary: getVar('--text-secondary'),
+            muted: getVar('--text-muted'),
+        },
+        border: {
+            color: getVar('--border-color'),
+        },
+        color: {
+            primary: getVar('--color-primary'),
+            primaryHover: getVar('--color-primary-hover'),
+            secondary: getVar('--color-secondary'),
+            error: getVar('--color-error'),
+        },
+    }
+    return palette
+};
+
+export let PALETTE = buildPalette();
+
+window.addEventListener('load', () => {
+    refreshPalette();
+});
+
+export const refreshPalette = () => Object.assign(PALETTE, buildPalette());
+
 export function cvtImageToMNISTInput(imageData) {
     const { data, width, height } = imageData;
     const grayArray = new Float32Array(width * height);

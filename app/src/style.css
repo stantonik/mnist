@@ -26,11 +26,6 @@
     --color-primary-hover: #9f6ef8;
     --color-secondary: #03dac6;
     --color-error: #cf6679;
-
-    /* Shadows (subtle for dark theme) */
-    --shadow-small: 0 1px 3px rgba(0, 0, 0, 0.5);
-    --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.6);
-    --shadow-large: 0 10px 15px rgba(0, 0, 0, 0.7);
 }
 
 * {
@@ -63,6 +58,10 @@ header {
     margin-top: 1rem;
 }
 
+header p {
+    color: var(--text-secondary);
+}
+
 main {
     width: 100%;
 }
@@ -79,7 +78,6 @@ select {
     color: var(--text-primary);
     border: 1px solid var(--border-color);
     padding: 0.5rem 1rem;
-    box-shadow: var(--shadow-small);
     cursor: pointer;
     transition: background-color 0.2s ease;
 }

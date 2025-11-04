@@ -9,17 +9,10 @@ import './style.css';
 import Chart from 'chart.js/auto'
 import { getCanvasImageData, setupCanvas } from './drawing';
 import { setupInference, makePrediction } from './inference';
-import { cvtImageToMNISTInput, cvtMNISTInputToImage, softmax, indexArray, makeImageLink } from './utils';
+import { cvtImageToMNISTInput, cvtMNISTInputToImage, softmax, indexArray, makeImageLink, PALETTE } from './utils';
 
 let loopRunning = false;
-
-// Prediction chart
 let predictionsChart;
-const rootStyles = getComputedStyle(document.documentElement);
-const topBarColor = rootStyles.getPropertyValue('--color-primary').trim();
-const barColor = rootStyles.getPropertyValue('--color-primary-hover').trim();
-const textColor = rootStyles.getPropertyValue('--text-primary').trim();
-const textSecColor = rootStyles.getPropertyValue('--text-secondary').trim();
 
 function setupPredictions(p) {
     predictionsChart = new Chart(
@@ -42,7 +35,7 @@ function setupPredictions(p) {
                         position: 'bottom',
                         align: 'center',
                         labels: {
-                            color: textColor,
+                            color: PALETTE.text.secondary,
                             font: {
                                 size: 14
                             }
@@ -51,13 +44,13 @@ function setupPredictions(p) {
                 },
                 scales: {
                     y: {
-                        ticks: { color: textSecColor },
+                        display: false,
                         grid: { color: 'transparent' },
                         beginAtZero: true,
                         reverse: true
                     },
                     x: {
-                        ticks: { color: textSecColor },
+                        ticks: { color: PALETTE.text.secondary },
                         grid: { color: 'transparent' },
                         beginAtZero: true
                     }
@@ -69,22 +62,37 @@ function setupPredictions(p) {
     updatePredictions(p);
 }
 
-function updatePredictions(p) {
+function updatePredictions(p = null, asc = false) {
     if (!predictionsChart) return;
 
+    if (!p) {
+        p = indexArray(Array.from({ length: 10 }, () => 0));
+    }
+
     // Sort descending by values
-    const pSortedArray = Object.entries(p).sort((a, b) => b[1] - a[1]);
+    const pSortedArray = asc ? Object.entries(p).sort((a, b) => b[1] - a[1]) : Object.entries(p);
 
     // Separate keys and values for Chart.js
     const labels = pSortedArray.map(([key]) => key);
     const values = pSortedArray.map(([_, value]) => value);
 
+    // Find the biggest value
     const maxValue = Math.max(...values);
-    const backgroundColors = values.map(value => value === maxValue ? topBarColor : barColor);
+    const minValue = Math.min(...values);
+    const maxIndex = values.indexOf(maxValue);
+
+    const backgroundColors = values.map(value => value === maxValue ? PALETTE.color.primary : PALETTE.color.primaryHover);
 
     predictionsChart.data.labels = labels;
     predictionsChart.data.datasets[0].data = values;
     predictionsChart.data.datasets[0].backgroundColor = backgroundColors;
+    if (maxValue != minValue) {
+        predictionsChart.options.scales.x.ticks.font = (ctx) => (ctx.tick.label == maxIndex ? { weight: 'bold' } : { weight: 'normal' });
+        predictionsChart.options.scales.x.ticks.color = (ctx) => (ctx.tick.label == maxIndex ? PALETTE.color.primary : PALETTE.text.secondary);
+    } else {
+        predictionsChart.options.scales.x.ticks.font = { weight: 'normal' };
+        predictionsChart.options.scales.x.ticks.color = PALETTE.text.secondary;
+    }
     predictionsChart.update();
 }
 
@@ -92,8 +100,7 @@ function updatePredictions(p) {
 setupCanvas();
 await setupInference();
 
-const p0 = Array.from({ length: 10 }, () => 0);
-setupPredictions(indexArray(p0));
+setupPredictions();
 
 async function loopInference() {
     if (!loopRunning) return;
@@ -122,6 +129,7 @@ document.getElementById("run").addEventListener("click", (e) => {
     if (loopRunning) {
         btn.textContent = "Run Model";
         loopRunning = false;
+        updatePredictions();
     } else {
         btn.textContent = "Stop Model";
         loopRunning = true;
